@@ -1,15 +1,10 @@
 import torch
-import pandas as pd
 from configparser import ConfigParser
 from transformers import AutoTokenizer, AutoModelForCausalLM, BitsAndBytesConfig
 from peft import PeftModel
 from load_data import prepare_prompt
 import sys
 from pathlib import Path
-
-# paths
-base_path = "/data/arguellesa/traice/"
-data_test_path = 'pcapeval.json'
 
 # configuration parameters
 c = ConfigParser()
@@ -19,11 +14,12 @@ base_model_id = c.get("DEFAULT", "model")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def main():
-    if len(sys.argv) != 2:
-        print("Incorrect number of arguments: <pcap_file_path>")
+    if len(sys.argv) != 3:
+        print("Incorrect number of arguments: <model_path> <pcap_file_path>")
         return
     
-    pcap_path = sys.argv[1]
+    model_path = sys.argv[1]
+    pcap_path = sys.argv[2]
 
     print("Loading model...")
     # base model
@@ -42,7 +38,7 @@ def main():
     tokenizer = AutoTokenizer.from_pretrained(base_model_id, add_bos_token=True, trust_remote_code=True, token=hf_token)
 
     # Load the QLoRA adapter from the appropriate checkpoint directory
-    ft_model = PeftModel.from_pretrained(model, base_path + "old_weights/checkpoint-500")
+    ft_model = PeftModel.from_pretrained(model, model_path)
 
     # run inference
     eval_prompt_input = prepare_prompt(Path(pcap_path)) # build prompt with pcap file content

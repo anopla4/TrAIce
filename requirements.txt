@@ -1,6 +1,4 @@
-datasets==2.17.0
-peft
-torch==2.2.2
-transformers==4.37.2
-wandb
+datasets==2.18.0
+peft==0.9.0
+transformers==4.38.2
 accelerate==0.29.2

@@ -34,20 +34,33 @@ def main():
         device_map={"": 0},
         quantization_config=bnb_config,
         token=hf_token)
-
-    tokenizer = AutoTokenizer.from_pretrained(base_model_id, add_bos_token=True, trust_remote_code=True, token=hf_token)
-
+    
+    max_length = 1700
+    tokenizer = AutoTokenizer.from_pretrained(base_model_id,
+                                        add_eos_token=True, 
+                                        add_bos_token=True,
+                                        trust_remote_code=True,
+                                        truncation=True, 
+                                        max_length=max_length,
+                                        token=hf_token)
+    tokenizer.pad_token = tokenizer.eos_token
+    tokenizer.padding="max_length"
+    tokenizer.padding_side="left"
     # Load the QLoRA adapter from the appropriate checkpoint directory
     ft_model = PeftModel.from_pretrained(model, model_path)
 
     # run inference
     eval_prompt_input = prepare_prompt(Path(pcap_path)) # build prompt with pcap file content
-    model_input = tokenizer(eval_prompt_input, return_tensors="pt").to(device) # load model
+    model_input = tokenizer(eval_prompt_input,
+                            return_tensors="pt",
+                            truncation=True, 
+                            max_length=max_length,
+                            padding="max_length").to(device) # load model
 
     # generate response
     ft_model.eval()
     with torch.no_grad():
-        print(tokenizer.decode(ft_model.generate(**model_input, max_new_tokens=2000)[0], skip_special_tokens=True))
+        print(tokenizer.decode(ft_model.generate(**model_input, max_new_tokens=max_length, pad_token_id=2)[0], skip_special_tokens=True))
 
 if __name__ == "__main__":
     main()

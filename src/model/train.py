@@ -13,17 +13,18 @@ from datetime import datetime
 from pathlib import Path
 from configparser import ConfigParser
 from utils import print_trainable_parameters, generate_and_tokenize_prompt, generate_and_tokenize_prompt2, plot_data_lengths
-# paths
-base_path = "/data/arguellesa/traice/"
-data_train_path = 'train_data.json'
-data_test_path = 'validation_data.json'
+
 
 # configuration parameters
 c = ConfigParser()
 c.read("model/.config")
-hf_token = c.get("DEFAULT", "token")
-base_model_id = c.get("DEFAULT", "model")
+hf_token = c.get("DEFAULT", "token") # HuggingFace model token
+base_model_id = c.get("DEFAULT", "model") # HuggingFace Model id
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# paths
+base_path = c.get("DEFAULT", "base_path") # base path where data is located and where model will be saved
+data_train_path = c.get("DEFAULT", "train_data_path") # train data file name
+data_test_path = c.get("DEFAULT", "validation_data_path") # validation data file name
 
 print("Loading datasets...")
 # load datasets
@@ -54,7 +55,10 @@ accelerator = Accelerator(fsdp_plugin=fsdp_plugin)
 
 print("Tokenizing...")
 # tokenization
-tokenizer = AutoTokenizer.from_pretrained(base_model_id, padding_side="left", add_eos_token=True, add_bos_token=True,
+tokenizer = AutoTokenizer.from_pretrained(base_model_id, 
+                                          padding_side="left", 
+                                          add_eos_token=True, 
+                                          add_bos_token=True,
                                           token=hf_token)
 tokenizer.pad_token = tokenizer.eos_token
 # tokenized_train_dataset = train_dataset.map(lambda x : generate_and_tokenize_prompt(tokenizer, x))

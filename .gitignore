@@ -162,3 +162,5 @@ cython_debug/
 data
 src/*.png
 data.zip
+traicenv/
+src/wandb

@@ -1,9 +1,7 @@
-source /data/arguellesa/venv/traice/bin/activate
+#!/bin/bash
+source traicenv/bin/activate
 module load python39
-if idlegpu 2>/dev/null 1>&2 ; then
-        export CUDA_VISIBLE_DEVICES=idlegpu -p 1;
-fi;
 # to train
-python model/train.py
+# python main.py train model/.config
 # to test
-# python model/test.py
+python main.py model/.config /data/arguellesa/traice/old_weights/checkpoint-500 /data/arguellesa/traice/1.txt

@@ -1,12 +1,31 @@
-from transformers import AutoTokenizer, LlamaForCausalLM
+import sys
+from model.train import ModelTrainer
+from model.test import ModelTester
 
-model = LlamaForCausalLM.from_pretrained("meta-llama/Llama-2-13b-hf", token="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")
-tokenizer = AutoTokenizer.from_pretrained("meta-llama/Llama-2-13b-hf",token ="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")
+output_path = "/data/arguellesa/traice/output"
 
-prompt = "Hey, are you conscious? Can you talk to me?"
-inputs = tokenizer(prompt, return_tensors="pt")
+def main():
+    # check correct command line in train or test mode 
+    if len(sys.argv) < 3 or len(sys.argv) > 5 or (sys.argv[1] != "train" and sys.argv[1] != "test"):
+        sys.stderr.write("Incorrect command line: train <config_path> (test <model_path> <pcap_dile_path>)\n")
+        return
 
-# Generate
-generate_ids = model.generate(inputs.input_ids, max_length=30)
-a = tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
-print(a)
+    mode = sys.argv[1] # train or test
+
+    # train
+    if mode == "train":
+        if len(sys.argv) > 3:
+            sys.stderr.write("Incorrect command line: train <config_path>\n")
+            return
+        model_trainer = ModelTrainer(sys.argv[2])
+        model_trainer.train(output_dir=output_path)
+    # test
+    elif mode == "test":
+        if len(sys.argv) != 5:
+            sys.stderr.write("Incorrect command line: test <config_path> <model_path> <pcap_dile_path>\n")
+            return
+        model_tester = ModelTester(sys.argv[2])
+        model_tester.test(sys.argv[3], sys.argv[4])
+
+if __name__ == "__main__":
+    main()

@@ -32,6 +32,7 @@ class ModelTester:
         return model
         
     def __load_tokenizer(self, max_length=1700):
+        # create tokenizer with padding and truncation
         tokenizer = AutoTokenizer.from_pretrained(self.base_model_id,
                                         add_eos_token=True, 
                                         add_bos_token=True,
@@ -46,13 +47,25 @@ class ModelTester:
         return tokenizer
 
     def test(self, model_path, pcap_path, max_length=1700):
+        """
+        Get explanation of a pcap file from the trained model.
+        
+        Keyword arguments:
+        model_path -- trained model path
+        pcap_path -- pcap file path
+        Return: pcap file explanation.
+        """
+        
+        # check parameters
         if model_path == None or pcap_path == None:
-            print("Incorrect number of arguments: <model_path> <pcap_file_path>")
+            print("Invalid arguments: <model_path> and <pcap_file_path> cannot be None.")
             return
         
+        # load model
         print("Loading model...")
         model = self.__load_model()
 
+        # load tokenizer
         print("Loading tokenizer...")
         tokenizer = self.__load_tokenizer(max_length=max_length)
 
@@ -71,4 +84,6 @@ class ModelTester:
         # generate response
         ft_model.eval()
         with torch.no_grad():
-            print(tokenizer.decode(ft_model.generate(**model_input, max_new_tokens=max_length, pad_token_id=2)[0], skip_special_tokens=True))
+            exp = tokenizer.decode(ft_model.generate(**model_input, max_new_tokens=max_length, pad_token_id=2)[0], skip_special_tokens=True)
+            print(exp)
+            return exp

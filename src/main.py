@@ -2,23 +2,21 @@ import sys
 from model.train import ModelTrainer
 from model.test import ModelTester
 
-output_path = "/data/arguellesa/traice/output"
-
 def main():
     # check correct command line in train or test mode 
-    if len(sys.argv) < 3 or len(sys.argv) > 5 or (sys.argv[1] != "train" and sys.argv[1] != "test"):
-        sys.stderr.write("Incorrect command line: train <config_path> (test <model_path> <pcap_dile_path>)\n")
+    if len(sys.argv) < 4 or len(sys.argv) > 5 or (sys.argv[1] != "train" and sys.argv[1] != "test"):
+        sys.stderr.write("Incorrect command line: train <config_path> <output_dir> (test <model_path> <pcap_dile_path>)\n")
         return
 
     mode = sys.argv[1] # train or test
 
     # train
     if mode == "train":
-        if len(sys.argv) > 3:
+        if len(sys.argv) > 4:
             sys.stderr.write("Incorrect command line: train <config_path>\n")
             return
         model_trainer = ModelTrainer(sys.argv[2])
-        model_trainer.train(output_dir=output_path)
+        model_trainer.train(output_dir=sys.argv[3])
     # test
     elif mode == "test":
         if len(sys.argv) != 5:

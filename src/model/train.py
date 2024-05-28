@@ -59,6 +59,7 @@ class ModelTrainer:
         return train_dataset, eval_dataset
     
     def __tokenize_data(self, data, tokenizer, max_length=1700):
+        # tokenize prompts
         tokenized_dataset = data.map(lambda x : 
                                            self.data_processor.generate_and_tokenize_prompt2(tokenizer, x, max_length=max_length))
         return tokenized_dataset
@@ -119,22 +120,31 @@ class ModelTrainer:
         return model
 
     def train(self, output_dir, run_name="llama2-13b -- traice", wandb_project="traice"):
+        """
+        Train model.
+        
+        Keyword arguments:
+        output_dir -- directory in which the trained model will be saved
+        run_name -- wandb run name
+        wandb_project -- wandb project name
+        """
+        # create tokenizer
         print("Creating tokenizer...")
         tokenizer = self.__load_tokenizer()
         
+        # load data
         print("Loading data...")
         train_dataset, val_dataset = self.__load_data()
         print("Tokenize data...")
         tokenized_train_dataset = self.__tokenize_data(train_dataset, tokenizer)
         tokenized_val_dataset = self.__tokenize_data(val_dataset, tokenizer)
 
-
-        print("Setting up lora...")
         # set up lora
+        print("Setting up lora...")
         model = self.__setup_lora(self.__load_model())
 
-        print("Applying accelerator...")
         # apply the accelerator
+        print("Applying accelerator...")
         # you can comment this out to remove the accelerator.
         model = self.accelerator.prepare_model(model)
 
@@ -142,8 +152,8 @@ class ModelTrainer:
         wandb.login()
         os.environ["WANDB_PROJECT"] = wandb_project
 
-        print("Configuring training...")
         # training configuration
+        print("Configuring training...")
         if torch.cuda.device_count() > 1: # If more than 1 GPU
             print("More than one GPU...")
             model.is_parallelizable = True
@@ -179,6 +189,15 @@ class ModelTrainer:
         trainer.train()
 
     def run_model(self, prompt, model, tokenizer, max_length=1700):
+        """
+        Get inference from a prompt using model.
+        
+        Keyword arguments:
+        prompt -- input prompt
+        model -- model
+        tokenizer -- tokenizer
+        """
+        
         model_input = tokenizer(prompt, return_tensors="pt").to(self.device)
         model.eval()
         with torch.no_grad():
